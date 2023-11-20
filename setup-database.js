@@ -1,10 +1,10 @@
 const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database(':memory:');
+const db = new sqlite3.Database('database/tasks.db');
 
 db.serialize(() => {
-  db.run("CREATE TABLE quiz (id INTEGER, name varchar[6000], className varchar[6000], date DATE)");
-  db.run("CREATE TABLE assignment (id INTEGER, name varchar[6000], className varchar[6000], date DATE)");
-  db.run("CREATE TABLE addInfo (taskID INTEGER, type varchar[6000], info varchar[4000])");
+  db.run("CREATE TABLE quiz (id INTEGER, name VARCHAR[6000], className VARCHAR[6000], date DATE)");
+  db.run("CREATE TABLE assignment (id INTEGER, name VARCHAR[6000], className VARCHAR[6000], date DATE)");
+  db.run("CREATE TABLE addInfo (taskID INTEGER, type VARCHAR[6000], info VARCHAR[4000])");
 
 	db.run("INSERT INTO quiz VALUES (?, ?, ?, datetime('now'))", {
 		1: 1,

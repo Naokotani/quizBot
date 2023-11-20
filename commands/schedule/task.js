@@ -5,6 +5,8 @@ const { SlashCommandBuilder,
 				TextInputStyle
 			} = require('discord.js');
 
+const sqlite3 = require('sqlite3').verbose();
+
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('task')
@@ -83,12 +85,17 @@ module.exports = {
 
 		const filter = (interaction) => interaction.customId === 'taskModal';
 
+		const db = new sqlite3.Database('database/tasks.db');
+
 		interaction.awaitModalSubmit({ filter, time: 60_000 })
 			.then(interaction => {
 				const taskName = interaction.fields.getTextInputValue('taskName');
 				console.log('modal was received');
+
 				interaction.reply(`\n> **__Successfully created ${taskName}__**\n> \n> **Date:** ${month} ${day}\n> **Type** ${type}\n> **Class:** ${className}`);
 			})
 			.catch(console.error);
+
+		db.close();
 	}
 };

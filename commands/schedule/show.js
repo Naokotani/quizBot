@@ -1,4 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
+const sqlite3 = require('sqlite3').verbose();
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -31,9 +32,28 @@ module.exports = {
 	},
 
 	async execute(interaction) {
-		const type = interaction.options.getString('type');
-		const className = interaction.options.getString('class');
-		await interaction.reply({content: `You are viewing ${type} tasks for ${className}.`, ephemeral: true});
-	},
 
+		const db = new sqlite3.Database('database/tasks.db');
+
+		
+		db.each("SELECT id, name, className, date, info FROM assignment JOIN addInfo ON addinfo.taskID=assignment.id", (err, row) => {
+			if (err) console.log(err)
+			console.log(`${row.id}: ${row.name} ${row.className} ${row.date} ${row.info}`);
+			const replyHead =
+						`
+> **__${row.name}__**
+> class: ${row.className}
+> Due Date: ${row.date}
+`
+			const replyBody =
+						`
+__Additional Information__
+
+${row.info}
+`
+			interaction.reply({content: row.info?replyHead + replyBody:replyHead});
+		});
+
+		db.close();
+	},
 };
