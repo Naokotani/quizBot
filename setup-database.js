@@ -18,6 +18,12 @@ db.serialize(() => {
 		3: "Web",
 	});
 
+	db.run("INSERT INTO assignment VALUES (?, ?, ?, datetime('now'))", {
+		1: 2,
+		2: "quiz Time!",
+		3: "network",
+	});
+
 	db.run("INSERT INTO addInfo VALUES (?, ?, ?)", {
 		1: 1,
 		2: "Assignment",

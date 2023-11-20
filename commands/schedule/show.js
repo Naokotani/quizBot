@@ -35,8 +35,9 @@ module.exports = {
 
 		const db = new sqlite3.Database('database/tasks.db');
 
+		await interaction.reply("Here are your upcoming quizes");
 		
-		db.each("SELECT id, name, className, date, info FROM assignment JOIN addInfo ON addinfo.taskID=assignment.id", (err, row) => {
+		db.each("SELECT id, name, className, date, info FROM assignment LEFT JOIN addInfo ON addinfo.taskID=assignment.id", (err, row) => {
 			if (err) console.log(err)
 			console.log(`${row.id}: ${row.name} ${row.className} ${row.date} ${row.info}`);
 			const replyHead =
@@ -51,7 +52,7 @@ __Additional Information__
 
 ${row.info}
 `
-			interaction.reply({content: row.info?replyHead + replyBody:replyHead});
+			interaction.followUp({content: row.info?replyHead + replyBody:replyHead});
 		});
 
 		db.close();
