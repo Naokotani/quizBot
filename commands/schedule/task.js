@@ -81,8 +81,6 @@ module.exports = {
 
 		await interaction.showModal(modal);
 
-		console.log(interaction)
-
 		const filter = (interaction) => interaction.customId === 'taskModal';
 
 		const db = new sqlite3.Database('database/tasks.db');
@@ -92,10 +90,23 @@ module.exports = {
 				const taskName = interaction.fields.getTextInputValue('taskName');
 				console.log('modal was received');
 
-				interaction.reply(`\n> **__Successfully created ${taskName}__**\n> \n> **Date:** ${month} ${day}\n> **Type** ${type}\n> **Class:** ${className}`);
-			})
-			.catch(console.error);
+				interaction.reply(`\n> **__Creating ${taskName}__**\n> \n> **Date:** ${month} ${day}\n> **Type** ${type}\n> **Class:** ${className}`);
+				let err;
+				db.run(`
+INSERT INTO task (type, name, className, date)
+VALUES (?, ?, ?, datetime('now'))
+		`, {
+			1: type,
+			2: taskName,
+			3: className,
+		}, (err, row) => {
+			if (err) {
+				console.log(err)
+				interaction.followUp(err);
+			}
+		});
+				db.close();
 
-		db.close();
+			}).catch(console.error);
 	}
 };

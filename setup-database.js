@@ -3,29 +3,28 @@ const db = new sqlite3.Database('database/tasks.db');
 //const db = new sqlite3.Database(':memory:');
 
 db.serialize(() => {
-  db.run("CREATE TABLE task (id INTEGER, type VARCHAR[6000], name VARCHAR[6000], className VARCHAR[6000], date DATE)");
+  db.run(`
+CREATE TABLE task
+(id INTEGER PRIMARY KEY, type VARCHAR[6000], name VARCHAR[6000], className VARCHAR[6000], date DATE)`);
   db.run("CREATE TABLE addInfo (taskID INTEGER, type VARCHAR[6000], info VARCHAR[4000])");
 
 
-	db.run("INSERT INTO task VALUES (?, ?, ?, ?, datetime('now'))", {
-		1: 1,
-		2: "Quiz",
-		3: "quizzler!",
-		4: "Web",
+	db.run("INSERT INTO task (type, name, className, date) VALUES (?, ?, ?, datetime('now'))", {
+		1: "Quiz",
+		2: "quizzler!",
+		3: "Web",
 	});
 
-	db.run("INSERT INTO task VALUES (?, ?, ?, ?, datetime('now'))", {
-		1: 2,
-		2: "Assignment",
-		3: "Cool Assignment",
-		4: "network",
+	db.run("INSERT INTO task (type, name, className, date) VALUES (?, ?, ?, datetime('now'))", {
+		1: "Assignment",
+		2: "Cool Assignment",
+		3: "network",
 	});
 
-	db.run("INSERT INTO task VALUES (?, ?, ?, ?, datetime('now'))", {
-		1: 3,
-		2: "Quiz",
-		3: "quiz Time!",
-		4: "network",
+	db.run("INSERT INTO task (type, name, className, date) VALUES (?, ?, ?, datetime('now'))", {
+		1: "Quiz",
+		2: "quiz Time!",
+		3: "network",
 	});
 
 	db.run("INSERT INTO addInfo VALUES (?, ?, ?)", {
