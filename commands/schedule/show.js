@@ -35,15 +35,31 @@ module.exports = {
 
 		const db = new sqlite3.Database('database/tasks.db');
 
+		const type = interaction.options.getString('type');
+		const className = interaction.options.getString('class');
+
+		
+		const classQuery = className=='All'?"":`WHERE t.className='${className}'`
+		const typeQuery = type=='All'?"":`WHERE t.type='${type}'`
+
+		const query = `
+SELECT t.id, t.name, t.className, t.date, a.info
+FROM task t
+LEFT JOIN addInfo a
+ON t.id=a.taskID
+${classQuery}
+${typeQuery}
+`
+
 		await interaction.reply("Here are your upcoming quizes");
 		
-		db.each("SELECT id, name, className, date, info FROM assignment LEFT JOIN addInfo ON addinfo.taskID=assignment.id", (err, row) => {
+		db.each(query, (err, row) => {
 			if (err) console.log(err)
-			console.log(`${row.id}: ${row.name} ${row.className} ${row.date} ${row.info}`);
 			const replyHead =
 						`
 > **__${row.name}__**
-> class: ${row.className}
+> 
+> Class: ${row.className}
 > Due Date: ${row.date}
 `
 			const replyBody =
