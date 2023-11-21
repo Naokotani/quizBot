@@ -55,6 +55,7 @@ module.exports = {
 		const day = interaction.options.getInteger('day');
 		const className = interaction.options.getString('class');
 
+			
 		const modal = new ModalBuilder()
 					.setCustomId('taskModal')
 					.setTitle(`Create ${type} for ${month} ${day}`);
@@ -89,17 +90,58 @@ module.exports = {
 			.then(interaction => {
 				const taskName = interaction.fields.getTextInputValue('taskName');
 				console.log('modal was received');
+				let date;
+
+		switch (month) {
+		case 'January':
+			date = `2023-1-${day} 11:59`;
+			break;
+  	case 'February':
+			date = `2023-2-${day} 11:59`;
+			break;
+		case 'March':
+			date = `2023-3-${day} 11:59`;
+			break;
+		case 'April':
+			date = `2023-4-${day} 11:59`;
+			break;
+		case 'May':
+			date = `2023-5-${day} 11:59`;
+			break;
+		case 'June':
+			date = `2023-6-${day} 11:59`;
+			break;
+		case 'July':
+			date = `2023-7-${day} 11:59`;
+			break;
+		case 'August':
+			date = `2023-8-${day} 11:59`;
+	  	break;
+		case 'September':
+			date = `2023-9-${day} 11:59`;
+			break;
+		case 'October':
+			date = `2023-10-${day} 11:59`;
+			break;
+		case 'November':
+			date = `2023-11-${day} 11:59`;
+			break;
+		case 'December':
+			date = `2023-12-${day} 11:59`;
+			break;
+		}
 
 				interaction.reply(`\n> **__Creating ${taskName}__**\n> \n> **Date:** ${month} ${day}\n> **Type** ${type}\n> **Class:** ${className}`);
 				let err;
 				db.run(`
 INSERT INTO task (type, name, className, date)
-VALUES (?, ?, ?, datetime('now'))
+VALUES (?, ?, ?, ?)
 		`, {
 			1: type,
 			2: taskName,
 			3: className,
-		}, (err, row) => {
+			4: date,
+		}, (err) => {
 			if (err) {
 				console.log(err)
 				interaction.followUp(err);
