@@ -21,10 +21,14 @@ module.exports = {
 				.setAutocomplete(true))
 		.addIntegerOption(option =>
 			option.setName('day')
-				.setDescription('Enter a day of the month'))
+				.setDescription('What day is it due?'))
 		.addStringOption(option =>
 			option.setName('month')
-				.setDescription('Enter a month of the year')
+				.setDescription('What month is it due?')
+				.setAutocomplete(true))
+		.addStringOption(option =>
+			option.setName('year')
+				.setDescription('What year is it due?')
 				.setAutocomplete(true)),
 	async autocomplete(interaction) {
 		const focusedOption = interaction.options.getFocused(true);
@@ -43,6 +47,20 @@ module.exports = {
 								 'July', 'August', 'September', 'October', 'November', 'December'];
 		}
 
+		const yearString = (inc=0) => {
+			let year = new Date().getFullYear();
+			year+=inc;
+		  return year.toString();
+		}
+
+		if (focusedOption.name === 'year') {
+			choices = [yearString(),
+								 yearString(1),
+								 yearString(2),
+								 yearString(3),
+								 yearString(4)];
+		}
+
 		const filtered = choices.filter(choice => choice.startsWith(focusedOption.value));
 		await interaction.respond(
 			filtered.map(choice => ({ name: choice, value: choice })),
@@ -51,19 +69,27 @@ module.exports = {
 
 	async execute(interaction) {
 		const type = interaction.options.getString('type');
-		const month = interaction.options.getString('month');
-		const day = interaction.options.getInteger('day');
 		const className = interaction.options.getString('class');
+		const day = interaction.options.getInteger('day');
+		const month = interaction.options.getString('month');
+		const year = interaction.options.getString('year');
 
 			
 		const modal = new ModalBuilder()
 					.setCustomId('taskModal')
-					.setTitle(`Create ${type} for ${month} ${day}`);
+					.setTitle(`Create ${type} for ${month} ${day}, ${year}`);
 
 		const taskInput = new TextInputBuilder()
 					.setCustomId('taskName')
 					.setLabel(`What is the ${type} name?`)
 					.setStyle(TextInputStyle.Short);
+
+		const timeInput = new TextInputBuilder()
+					.setCustomId('time')
+					.setLabel(`What time is it due? (default: 11:59pm)`)
+					.setPlaceholder(`Enter in the same style as "11:59pm"`)
+					.setStyle(TextInputStyle.Short)
+					.setRequired(false);
 
 		const descriptionInput = new TextInputBuilder()
 					.setCustomId('additionalInfo')
@@ -74,11 +100,11 @@ module.exports = {
 
 
 		const firstActionRow = new ActionRowBuilder().addComponents(taskInput);
-		const secondActionRow = new ActionRowBuilder().addComponents(descriptionInput);
+		const secondActionRow = new ActionRowBuilder().addComponents(timeInput);
+		const thirdActionRow = new ActionRowBuilder().addComponents(descriptionInput);
 		
 
-		modal.addComponents(firstActionRow, secondActionRow);
-
+		modal.addComponents(firstActionRow, secondActionRow, thirdActionRow);
 
 		await interaction.showModal(modal);
 
@@ -88,46 +114,48 @@ module.exports = {
 
 		interaction.awaitModalSubmit({ filter, time: 60_000 })
 			.then(interaction => {
+				const userTime = interaction.fields.getTextInputValue('time');
 				const taskName = interaction.fields.getTextInputValue('taskName');
-				console.log('modal was received');
+				const time = userTime?userTime:"11:59pm"; 
+
 				let date;
 
 		switch (month) {
 		case 'January':
-			date = `2023-1-${day} 11:59`;
+			date = `${year}-1-${day} ${time}`;
 			break;
   	case 'February':
-			date = `2023-2-${day} 11:59`;
+			date = `${year}-2-${day} ${time}`;
 			break;
 		case 'March':
-			date = `2023-3-${day} 11:59`;
+			date = `${year}-3-${day} ${time}`;
 			break;
 		case 'April':
-			date = `2023-4-${day} 11:59`;
+			date = `${year}-4-${day} ${time}`;
 			break;
 		case 'May':
-			date = `2023-5-${day} 11:59`;
+			date = `${year}-5-${day} ${time}`;
 			break;
 		case 'June':
-			date = `2023-6-${day} 11:59`;
+			date = `${year}-6-${day} ${time}`;
 			break;
 		case 'July':
-			date = `2023-7-${day} 11:59`;
+			date = `${year}-7-${day} ${time}`;
 			break;
 		case 'August':
-			date = `2023-8-${day} 11:59`;
+			date = `${year}-8-${day} ${time}`;
 	  	break;
 		case 'September':
-			date = `2023-9-${day} 11:59`;
+			date = `${year}-9-${day} ${time}`;
 			break;
 		case 'October':
-			date = `2023-10-${day} 11:59`;
+			date = `${year}-10-${day} ${time}`;
 			break;
 		case 'November':
-			date = `2023-11-${day} 11:59`;
+			date = `${year}-11-${day} ${time}`;
 			break;
 		case 'December':
-			date = `2023-12-${day} 11:59`;
+			date = `${year}-12-${day} ${time}`;
 			break;
 		}
 
@@ -145,6 +173,8 @@ VALUES (?, ?, ?, ?)
 			if (err) {
 				console.log(err)
 				interaction.followUp(err);
+			} else {
+				console.log('Data Entry Created successfully for' + taskName)
 			}
 		});
 				db.close();
