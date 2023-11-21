@@ -42,9 +42,16 @@ module.exports = {
 			choices = ['Web', 'Database', 'Programming', 'Windows', 'Network'];
 		}
 
+		const month = ["January","February","March","April","May","June","July",
+							 "August","September","October","November","December"];
+		const d = new Date();
+		let monthName = month[d.getMonth()];
+		const endMonth = month.slice(month.indexOf(monthName));
+		const startMonth = month.slice(0, month.indexOf(monthName));
+		const defMonth = endMonth.concat(startMonth);
+
 		if (focusedOption.name === 'month') {
-			choices = ['January', 'February', 'March', 'April', 'May', 'June',
-								 'July', 'August', 'September', 'October', 'November', 'December'];
+			choices = defMonth;
 		}
 
 		const yearString = (inc=0) => {
