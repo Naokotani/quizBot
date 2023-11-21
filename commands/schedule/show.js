@@ -47,6 +47,7 @@ SELECT t.id, t.name, t.className, t.date, a.info
 FROM task t
 LEFT JOIN addInfo a
 ON t.id=a.taskID
+WHERE t.date > date('now')
 ${classQuery}
 ${typeQuery}
 `
