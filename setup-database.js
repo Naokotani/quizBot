@@ -5,9 +5,30 @@ const db = new sqlite3.Database('database/tasks.db');
 db.serialize(() => {
   db.run(`
 CREATE TABLE task
-(id INTEGER PRIMARY KEY, type VARCHAR[6000], name VARCHAR[6000], className VARCHAR[6000], date DATE)`);
-  db.run("CREATE TABLE addInfo (taskID INTEGER, type VARCHAR[6000], info VARCHAR[4000])");
+(id INTEGER PRIMARY KEY,
+ type VARCHAR[6000],
+ name VARCHAR[6000],
+ className VARCHAR[6000],
+ date DATE)
+`);
 
+  db.run("CREATE TABLE addInfo (taskID INTEGER, type VARCHAR[6000], info VARCHAR[4000])");
+	db.run("CREATE TABLE classes (id INTEGER PRIMARY KEY, className VARCHAR[6000], active BOOLEAN)");
+
+	db.run("INSERT INTO classes (className, active) VALUES (?, ?)", {
+		1: "Programming",
+		2: 1,
+	});
+
+	db.run("INSERT INTO classes (className, active) VALUES (?, ?)", {
+		1: "DATABASE",
+		2: 1,
+	});
+
+	db.run("INSERT INTO classes (className, active) VALUES (?, ?)", {
+		1: "Netowrking",
+		2: 0,
+	});
 
 	db.run("INSERT INTO task (type, name, className, date) VALUES (?, ?, ?, datetime('now'))", {
 		1: "Quiz",
@@ -32,6 +53,7 @@ CREATE TABLE task
 		2: "Assignment",
 		3: "This is a whole buncha text yo",
 	});
+
   db.each("SELECT id, name, className, date FROM task", (err, row) => {
 		console.log("task");
 		if (err) console.log(err)
@@ -47,6 +69,11 @@ CREATE TABLE task
 	console.log("joins");
 		if (err) console.log(err)
     console.log(`${row.id}: ${row.name} ${row.className} ${row.date} ${row.info}`);
+  });
+
+  db.each("SELECT id, className, active FROM classes", (err, row) => {
+		if (err) console.log(err)
+    console.log(`${row.id}: ${row.className} ${row.active}`);
   });
 
 

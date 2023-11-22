@@ -181,7 +181,7 @@ VALUES (?, ?, ?, ?)
 				console.log(err)
 				interaction.followUp(err);
 			} else {
-				console.log('Data Entry Created successfully for' + taskName)
+				console.log('Data Entry Created successfully for ' + taskName)
 			}
 		});
 				db.close();
