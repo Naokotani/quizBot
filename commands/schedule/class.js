@@ -99,10 +99,10 @@ UPDATE classes
 SET active = NOT active
 WHERE id=${id}`
 						 , (err) => {
-							 err?console.error(err):console.log("Status successfully changed");
+							 err?console.error(err):console.log("Status successfully changed for " + id);
 							 err?
-								 interaction.editReply("Error changing status"):
-								 interaction.editReply("Status successfully changed");
+								 interaction.editReply("Error changing status of " + id):
+								 interaction.editReply("Status successfully changed for " + id);
 						 });
 			}
 		}
@@ -114,9 +114,10 @@ WHERE id=${id}`
 			} else if (type === 'edit') {
 				const id = interaction.options.getString('id');
 				db.run(`DELETE FROM classes WHERE id=${id}`, (err) => {
+					err?console.error(err):console.log("Successfully removed" + id);
 					err?
 						interaction.editReply("Error removing " + id):
-						interaction.editReply("Status successfully removed");
+						interaction.editReply("Status successfully removed " + id);
 				})
 			}
 		}
