@@ -92,7 +92,7 @@ module.exports = {
         return "Here is your class list!";
       } else if (type === "edit") {
         db.each("SELECT id, className, active FROM classes", (err, row) => {
-          if (err) console.error(err);
+					try{
           const active = row.active ? "Active" : "Inactive";
           err
             ? interaction.editReply("failed to retrieve from DB")
@@ -100,6 +100,11 @@ module.exports = {
 Name: ${row.className}
 ID: ${row.id}
 Status: ${active}`);
+						
+					} catch (e) {
+						console.log(e);
+						console.log(err);
+					}
         });
       }
     }
