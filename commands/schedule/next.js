@@ -1,68 +1,92 @@
-const { SlashCommandBuilder } = require('discord.js');
-const sqlite3 = require('sqlite3').verbose();
+const { SlashCommandBuilder } = require("discord.js");
+const sqlite3 = require("sqlite3").verbose();
 
 module.exports = {
-	data: new SlashCommandBuilder()
-		.setName('next')
-		.setDescription('Show the next upcoming task.')
-		.addStringOption(option =>
-			option.setName('type')
-				.setDescription('What type of task?')
-				.setAutocomplete(true)),
-	async autocomplete(interaction) {
-		const focusedOption = interaction.options.getFocused(true);
-		let choices;
+  data: new SlashCommandBuilder()
+    .setName("next")
+    .setDescription("Show the next upcoming task.")
+    .addStringOption((option) =>
+      option.setName("limit").setDescription("How many to show?")
+    )
+    .addStringOption((option) =>
+      option
+        .setName("type")
+        .setDescription("What type of task?")
+        .setAutocomplete(true)
+    )
+    .addStringOption((option) =>
+      option
+        .setName("class")
+        .setDescription("What class?")
+        .setAutocomplete(true)
+    ),
 
-		if (focusedOption.name === 'type') {
-			choices = ['All', 'Assignment', 'Quiz'];
-		}
+  async autocomplete(interaction) {
+    const focusedOption = interaction.options.getFocused(true);
+    let choices;
 
-		const filtered = choices.filter(choice => choice.startsWith(focusedOption.value));
-		await interaction.respond(
-			filtered.map(choice => ({ name: choice, value: choice })),
-		);
-	},
+    if (focusedOption.name === "type") {
+      choices = ["Assignment", "Quiz"];
+    }
 
-	async execute(interaction) {
-		const db = new sqlite3.Database('database/tasks.db');
-		const type = interaction.options.getString('type');
-		const typeQuery = type=='All'?"":`WHERE t.type='${type}'`
-		const query = `
+    if (focusedOption.name === "class") {
+      choices = ["Web", "Database", "Programming", "Windows", "Network"];
+    }
+
+    const filtered = choices.filter((choice) =>
+      choice.startsWith(focusedOption.value)
+    );
+
+    await interaction.respond(
+      filtered.map((choice) => ({ name: choice, value: choice }))
+    );
+  },
+
+  async execute(interaction) {
+		const types = ["Assignment", "Quiz"]; 
+		const classes = ["Web", "Database", "Programming", "Windows", "Network"];
+    const db = new sqlite3.Database("database/tasks.db");
+    const getType = interaction.options.getString("type");
+    const getClass = interaction.options.getString("class");
+    const getLimit = parseInt(interaction.options.getString("limit"));
+    const typeQuery = types.includes(getType) ? `AND t.type = '${getType}'` : "";
+    const classQuery = classes.includes(getClass) ? `AND t.class = '${getClass}'` : "";
+    const limit = (getLimit > 1) & (getLimit < 20) ? getLimit : 1;
+    const query = `
 SELECT t.id, t.name, t.className, t.date, a.info
 FROM task t
 LEFT JOIN addInfo a
 ON t.id=a.taskID
 WHERE t.date > date('now')
 ${typeQuery}
+${classQuery}
 ORDER BY t.date ASC
-LIMIT 1
-`
+LIMIT ?
+`;
+    await interaction.reply("Here is your next task.");
 
-		await interaction.reply("Here is your next task.");
-		
-		db.get(query, (err, row) => {
-			try {
-			if (err) console.log(err)
-			const replyHead =
-						`
+    db.each(query, {1: limit }, (err, row) => {
+      try {
+        if (err) console.log(err);
+        const replyHead = `
 > **__${row.name}__**
 > 
 > Class: ${row.className}
 > Due Date: ${row.date}
-`
-			const replyBody =
-						`
+`;
+        const replyBody = `
 __Additional Information__
 
 ${row.info}
-`
-			interaction.followUp({content: row.info?replyHead + replyBody:replyHead});
-				
-			} catch (e) {
-			interaction.followUp({content: "Something went wrong!"});
-			}
-		});
+`;
+        interaction.followUp({
+          content: row.info ? replyHead + replyBody : replyHead,
+        });
+      } catch (e) {
+        interaction.followUp({ content: "Something went wrong!" });
+      }
+    });
 
-		db.close();
-	},
+    db.close();
+  },
 };
