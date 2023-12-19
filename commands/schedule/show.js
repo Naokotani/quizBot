@@ -28,11 +28,37 @@ module.exports = {
     let choices;
 
     if (focusedOption.name === "type") {
-      choices = ["All", "Assignment", "Quiz"];
+      choices = ["Assignment", "Quiz"];
     }
 
+    async function getChoices() {
+      return new Promise((resolve, reject) => {
+        let classChoices = [];
+        const db = new sqlite3.Database("database/tasks.db");
+				let err;
+        db.each(
+          `
+SELECT className FROM classes
+WHERE active = 1
+`,
+          (err, row) => {
+						err = err
+            classChoices.push(row.className);
+          } , (err) => {
+						err = err;
+            if (!err) {
+              resolve(classChoices);
+            } else {
+              reject(() => console.log(err));
+            }
+					}
+        );
+      });
+    }
+
+		const classChoices = await getChoices();
     if (focusedOption.name === "class") {
-      choices = ["All", "Web", "Database", "Programming", "Windows", "Network"];
+			choices = classChoices
     }
 
     const filtered = choices.filter((choice) =>
@@ -45,13 +71,38 @@ module.exports = {
 
   async execute(interaction) {
     const db = new sqlite3.Database("database/tasks.db");
-    const type = interaction.options.getString("type");
-    const className = interaction.options.getString("class");
-    const classQuery =
-      className == "All" ? "" : `AND t.className='${className}'`;
-    const typeQuery = type == "All" ? "" : `AND t.type='${type}'`;
+    async function getChoices() {
+      return new Promise((resolve, reject) => {
+        let classChoices = [];
+        let err;
+        db.each(
+          `
+SELECT className FROM classes
+WHERE active = 1
+`,
+          (e, row) => {
+            err = e;
+            classChoices.push(row.className);
+          },
+          (e) => {
+            err += e;
+            if (!err) {
+              resolve(classChoices);
+            } else {
+              reject(() => console.log(err));
+            }
+          }
+        );
+      });
+    }
+		const types = ["Assignment", "Quiz"]; 
+		const choices = await getChoices();
+    const getType = interaction.options.getString("type");
+    const getClass = interaction.options.getString("class");
+    const typeQuery = types.includes(getType) ? `AND t.type = '${getType}'` : "";
+    const classQuery = choices.includes(getClass) ? `AND t.class = '${getClass}'` : "";
 		let typeRes = "Here are your upcoming ";
-		switch (type) {
+		switch (getType) {
 			case "Quiz":
 				typeRes += "quizes."
 				break;
@@ -60,8 +111,6 @@ module.exports = {
 				break;
 			default:
 				typeRes += "tasks."
-				
-
 		}
     const query = `
 SELECT t.id, t.name, t.className, t.date, a.info, t.type

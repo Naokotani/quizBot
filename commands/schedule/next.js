@@ -29,8 +29,35 @@ module.exports = {
       choices = ["Assignment", "Quiz"];
     }
 
+    async function getChoices() {
+      return new Promise((resolve, reject) => {
+        let classChoices = [];
+        const db = new sqlite3.Database("database/tasks.db");
+        let err;
+        db.each(
+          `
+SELECT className FROM classes
+WHERE active = 1
+`,
+          (e, row) => {
+            err = e;
+            classChoices.push(row.className);
+          },
+          (e) => {
+            err += e;
+            if (!err) {
+              resolve(classChoices);
+            } else {
+              reject(() => console.log(err));
+            }
+          }
+        );
+      });
+    }
+
+    const classChoices = await getChoices();
     if (focusedOption.name === "class") {
-      choices = ["Web", "Database", "Programming", "Windows", "Network"];
+      choices = classChoices;
     }
 
     const filtered = choices.filter((choice) =>
@@ -43,14 +70,45 @@ module.exports = {
   },
 
   async execute(interaction) {
-		const types = ["Assignment", "Quiz"]; 
-		const classes = ["Web", "Database", "Programming", "Windows", "Network"];
+    async function getChoices() {
+      return new Promise((resolve, reject) => {
+        let classChoices = [];
+        const db = new sqlite3.Database("database/tasks.db");
+        let err;
+        db.each(
+          `
+SELECT className FROM classes
+WHERE active = 1
+`,
+          (e, row) => {
+            err = e;
+            classChoices.push(row.className);
+          },
+          (e) => {
+            err += e;
+            if (!err) {
+              resolve(classChoices);
+            } else {
+              reject(() => console.log(err));
+            }
+          }
+        );
+      });
+    }
+
     const db = new sqlite3.Database("database/tasks.db");
+    const types = ["Assignment", "Quiz"];
+    const classes = ["Web", "Database", "Programming", "Windows", "Network"];
     const getType = interaction.options.getString("type");
     const getClass = interaction.options.getString("class");
     const getLimit = parseInt(interaction.options.getString("limit"));
-    const typeQuery = types.includes(getType) ? `AND t.type = '${getType}'` : "";
-    const classQuery = classes.includes(getClass) ? `AND t.class = '${getClass}'` : "";
+    const typeQuery = types.includes(getType)
+      ? `AND t.type = '${getType}'`
+      : "";
+		const choices = await getChoices();
+    const classQuery = (choices.includes(getClass))
+      ? `AND t.className = '${getClass}'`
+      : "";
     const limit = (getLimit > 1) & (getLimit < 20) ? getLimit : 1;
     const query = `
 SELECT t.id, t.name, t.className, t.date, a.info
@@ -65,7 +123,7 @@ LIMIT ?
 `;
     await interaction.reply("Here is your next task.");
 
-    db.each(query, {1: limit }, (err, row) => {
+    db.each(query, { 1: limit }, (err, row) => {
       try {
         if (err) console.log(err);
         const replyHead = `
