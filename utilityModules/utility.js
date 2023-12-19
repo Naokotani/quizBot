@@ -7,12 +7,12 @@ const getChoices = async () => {
     let err;
     db.each(
       `
-SELECT className FROM classes
+SELECT id, className FROM classes
 WHERE active = 1
 `,
       (e, row) => {
         err = e;
-        classChoices.push(row.className);
+        classChoices.push({className: row.className, id: row.id});
       },
       (e) => {
         err += e;

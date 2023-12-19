@@ -33,8 +33,10 @@ module.exports = {
     }
 
 		const classChoices = await getChoices();
+		let classArray = [];
+		classChoices.forEach( i => classArray.push(i.className));
     if (focusedOption.name === "class") {
-			choices = classChoices
+			choices = classArray;
     }
 
     const filtered = choices.filter((choice) =>
@@ -52,7 +54,7 @@ module.exports = {
     const getType = interaction.options.getString("type");
     const getClass = interaction.options.getString("class");
     const typeQuery = types.includes(getType) ? `AND t.type = '${getType}'` : "";
-    const classQuery = choices.includes(getClass) ? `AND t.className = '${getClass}'` : "";
+    const classQuery = choices.includes(getClass) ? `AND c.className = '${getClass}'` : "";
 		let typeRes = "Here are your upcoming ";
 		switch (getType) {
 			case "Quiz":
@@ -65,10 +67,12 @@ module.exports = {
 				typeRes += "tasks."
 		}
     const query = `
-SELECT t.id, t.name, t.className, t.date, a.info, t.type
+SELECT t.id, t.name, c.className, t.date, a.info, t.type
 FROM task t
 LEFT JOIN addInfo a
 ON t.id=a.taskID
+INNER JOIN classes c
+ON t.classID = c.id
 WHERE t.date > date('now')
 ${classQuery}
 ${typeQuery}
