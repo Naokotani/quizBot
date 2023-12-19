@@ -7,7 +7,7 @@ module.exports = {
     .setName("class")
     .setDescription("Commands to manage classses")
     .addSubcommand((subcommand) =>
-      subcommand.setName("show").setDescription("Show the class list"),
+      subcommand.setName("show").setDescription("Show the class list")
     )
     .addSubcommand((subcommand) =>
       subcommand
@@ -17,8 +17,8 @@ module.exports = {
           option
             .setName("id")
             .setDescription("What is the ID of the class to be changed")
-            .setRequired(true),
-        ),
+            .setRequired(true)
+        )
     )
     .addSubcommand((subcommand) =>
       subcommand
@@ -28,8 +28,8 @@ module.exports = {
           option
             .setName("id")
             .setDescription("What is the ID of the class to remove")
-            .setRequired(true),
-        ),
+            .setRequired(true)
+        )
     )
     .addSubcommand((subcommand) =>
       subcommand
@@ -39,8 +39,8 @@ module.exports = {
           option
             .setName("name")
             .setDescription("What is the class name to add?")
-            .setRequired(true),
-        ),
+            .setRequired(true)
+        )
     ),
 
   async execute(interaction) {
@@ -80,9 +80,9 @@ module.exports = {
             interaction.editReply(
               err
                 ? "Failed to create " + className
-                : className + " created successfully",
+                : className + " created successfully"
             );
-          },
+          }
         );
       }
     }
@@ -92,19 +92,18 @@ module.exports = {
         return "Here is your class list!";
       } else if (type === "edit") {
         db.each("SELECT id, className, active FROM classes", (err, row) => {
-					try{
-          const active = row.active ? "Active" : "Inactive";
-          err
-            ? interaction.editReply("failed to retrieve from DB")
-            : interaction.followUp(`
+          try {
+            const active = row.active ? "Active" : "Inactive";
+            err
+              ? interaction.editReply("failed to retrieve from DB")
+              : interaction.followUp(`
 Name: ${row.className}
 ID: ${row.id}
 Status: ${active}`);
-						
-					} catch (e) {
-						console.log(e);
-						console.log(err);
-					}
+          } catch (e) {
+            console.log(e);
+            console.log(err);
+          }
         });
       }
     }
@@ -118,7 +117,7 @@ Status: ${active}`);
           `
 UPDATE classes
 SET active = NOT active
-WHERE id=${id}`,
+WHERE id = ?`, {1: id},
           (err) => {
             err
               ? console.error(err)
@@ -126,7 +125,7 @@ WHERE id=${id}`,
             err
               ? interaction.editReply("Error changing status of " + id)
               : interaction.editReply("Status successfully changed for " + id);
-          },
+          }
         );
       }
     }
@@ -137,7 +136,7 @@ WHERE id=${id}`,
         return `Removing ${id} from the list`;
       } else if (type === "edit") {
         const id = interaction.options.getString("id");
-        db.run(`DELETE FROM classes WHERE id=${id}`, (err) => {
+        db.run(`DELETE FROM classes WHERE id=?`, { 1: id }, (err) => {
           err ? console.error(err) : console.log("Successfully removed" + id);
           err
             ? interaction.editReply("Error removing " + id)
