@@ -5,7 +5,7 @@ const {
   TextInputBuilder,
   TextInputStyle,
 } = require("discord.js");
-
+const { getChoices } = require("../../utilityModules/utility");
 const sqlite3 = require("sqlite3").verbose();
 
 module.exports = {
@@ -45,32 +45,6 @@ module.exports = {
 
     if (focusedOption.name === "type") {
       choices = ["Assignment", "Quiz"];
-    }
-
-    async function getChoices() {
-      return new Promise((resolve, reject) => {
-        let classChoices = [];
-        const db = new sqlite3.Database("database/tasks.db");
-        let err;
-        db.each(
-          `
-SELECT className FROM classes
-WHERE active = 1
-`,
-          (err, row) => {
-            err = err;
-            classChoices.push(row.className);
-          },
-          (err) => {
-            err = err;
-            if (!err) {
-              resolve(classChoices);
-            } else {
-              reject(() => console.log(err));
-            }
-          }
-        );
-      });
     }
 
     const classChoices = await getChoices();
@@ -172,6 +146,7 @@ WHERE active = 1
       .awaitModalSubmit({ filter, time: 60_000 })
       .then((interaction) => {
         const userTime = interaction.fields.getTextInputValue("time");
+        const addInfo = interaction.fields.getTextInputValue("additionalInfo");
         const taskName = interaction.fields.getTextInputValue("taskName");
         const time = userTime ? userTime : "11:59pm";
         const yearTest = new Date().getFullYear() - year;
@@ -234,7 +209,7 @@ WHERE active = 1
           db.run(
             `
 INSERT INTO task (type, name, className, date)
-VALUES (?, ?, ?, ?)
+VALUES (?, ?, ?, ?);
 		`,
             {
               1: type,
@@ -242,12 +217,30 @@ VALUES (?, ?, ?, ?)
               3: className,
               4: date,
             },
-            (err) => {
+            (err, row) => {
               if (err) {
                 console.log(err);
                 interaction.followUp("Something went wrong.");
               } else {
                 console.log("Data Entry Created successfully for " + taskName);
+
+                db.get(
+                  `
+SELECT LAST_INSERT_ROWID() as id FROM task;
+		`,
+                  (err, row) => {
+                    if (err) {
+                      console.log(err);
+                      interaction.followUp("Something went wrong.");
+                    } else {
+                      console.log(row);
+                      db.run(
+                        "INSERT INTO addInfo (taskID, type, info) VAlUES(?, ?, ?)",
+                        { 1: row.id, 2: type, 3: addInfo }
+                      );
+                    }
+                  }
+                );
               }
             }
           );

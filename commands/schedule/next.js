@@ -1,5 +1,6 @@
 const { SlashCommandBuilder } = require("discord.js");
 const sqlite3 = require("sqlite3").verbose();
+const { getChoices } = require("../../utilityModules/utility");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -29,32 +30,6 @@ module.exports = {
       choices = ["Assignment", "Quiz"];
     }
 
-    async function getChoices() {
-      return new Promise((resolve, reject) => {
-        let classChoices = [];
-        const db = new sqlite3.Database("database/tasks.db");
-        let err;
-        db.each(
-          `
-SELECT className FROM classes
-WHERE active = 1
-`,
-          (e, row) => {
-            err = e;
-            classChoices.push(row.className);
-          },
-          (e) => {
-            err += e;
-            if (!err) {
-              resolve(classChoices);
-            } else {
-              reject(() => console.log(err));
-            }
-          }
-        );
-      });
-    }
-
     const classChoices = await getChoices();
     if (focusedOption.name === "class") {
       choices = classChoices;
@@ -70,35 +45,8 @@ WHERE active = 1
   },
 
   async execute(interaction) {
-    async function getChoices() {
-      return new Promise((resolve, reject) => {
-        let classChoices = [];
-        const db = new sqlite3.Database("database/tasks.db");
-        let err;
-        db.each(
-          `
-SELECT className FROM classes
-WHERE active = 1
-`,
-          (e, row) => {
-            err = e;
-            classChoices.push(row.className);
-          },
-          (e) => {
-            err += e;
-            if (!err) {
-              resolve(classChoices);
-            } else {
-              reject(() => console.log(err));
-            }
-          }
-        );
-      });
-    }
-
     const db = new sqlite3.Database("database/tasks.db");
     const types = ["Assignment", "Quiz"];
-    const classes = ["Web", "Database", "Programming", "Windows", "Network"];
     const getType = interaction.options.getString("type");
     const getClass = interaction.options.getString("class");
     const getLimit = parseInt(interaction.options.getString("limit"));

@@ -8,3 +8,7 @@ db.each("SELECT * FROM task", (err, row) => {
 db.each("SELECT * FROM classes", (err, row) => {
 	console.log(row);
 })
+
+db.each("SELECT * FROM addInfo", (err, row) => {
+	console.log(row);
+})

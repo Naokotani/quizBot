@@ -6,6 +6,7 @@ const {
   SlashCommandBuilder,
 } = require("discord.js");
 const sqlite3 = require("sqlite3").verbose();
+const { getChoices } = require("../../utilityModules/utility");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -31,31 +32,6 @@ module.exports = {
       choices = ["Assignment", "Quiz"];
     }
 
-    async function getChoices() {
-      return new Promise((resolve, reject) => {
-        let classChoices = [];
-        const db = new sqlite3.Database("database/tasks.db");
-				let err;
-        db.each(
-          `
-SELECT className FROM classes
-WHERE active = 1
-`,
-          (err, row) => {
-						err = err
-            classChoices.push(row.className);
-          } , (err) => {
-						err = err;
-            if (!err) {
-              resolve(classChoices);
-            } else {
-              reject(() => console.log(err));
-            }
-					}
-        );
-      });
-    }
-
 		const classChoices = await getChoices();
     if (focusedOption.name === "class") {
 			choices = classChoices
@@ -71,36 +47,12 @@ WHERE active = 1
 
   async execute(interaction) {
     const db = new sqlite3.Database("database/tasks.db");
-    async function getChoices() {
-      return new Promise((resolve, reject) => {
-        let classChoices = [];
-        let err;
-        db.each(
-          `
-SELECT className FROM classes
-WHERE active = 1
-`,
-          (e, row) => {
-            err = e;
-            classChoices.push(row.className);
-          },
-          (e) => {
-            err += e;
-            if (!err) {
-              resolve(classChoices);
-            } else {
-              reject(() => console.log(err));
-            }
-          }
-        );
-      });
-    }
 		const types = ["Assignment", "Quiz"]; 
 		const choices = await getChoices();
     const getType = interaction.options.getString("type");
     const getClass = interaction.options.getString("class");
     const typeQuery = types.includes(getType) ? `AND t.type = '${getType}'` : "";
-    const classQuery = choices.includes(getClass) ? `AND t.class = '${getClass}'` : "";
+    const classQuery = choices.includes(getClass) ? `AND t.className = '${getClass}'` : "";
 		let typeRes = "Here are your upcoming ";
 		switch (getType) {
 			case "Quiz":
@@ -209,7 +161,11 @@ ${row.info}
       if (confirmSelect.customId === "class menu") {
         confirmation.deleteReply();
         db.run(
-          `DELETE FROM task WHERE id=?`,
+          `
+DELETE task
+FROM task LEFT JOIN addInfo
+ON task.id = addInfo.id
+WHERE id=?`,
           { 1: parseInt(confirmSelect.values[0]) },
           (err) => {
             !err
