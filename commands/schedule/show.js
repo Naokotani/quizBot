@@ -162,16 +162,17 @@ ${row.info}
         confirmation.deleteReply();
         db.run(
           `
-DELETE task
-FROM task LEFT JOIN addInfo
-ON task.id = addInfo.id
-WHERE id=?`,
+DELETE FROM task WHERE id=?`,
           { 1: parseInt(confirmSelect.values[0]) },
           (err) => {
             !err
               ? confirmSelect.reply("Task removed successfully.")
               : confirmSelect.reply("Error removing task.");
             err && console.log(err);
+						if (!err) {
+							db.run("DELETE FROM addInfo WHERE taskID = ?",
+										 {1: parseInt(confirmSelect.values[0])})
+						}
           }
         );
       }
