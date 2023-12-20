@@ -110,9 +110,9 @@ module.exports = {
     const year = interaction.options.getString("year");
     const classArray = await getChoices();
     let classID = false;
-    for (i in classArray) {
-      if ((classArray[i].className = className)) {
-        classID = classArray[i].id;
+    for (const c of classArray) {
+      if (c.className === className) {
+        classID = c.id;
         break;
       }
     }
