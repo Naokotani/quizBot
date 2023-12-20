@@ -31,8 +31,10 @@ module.exports = {
     }
 
     const classChoices = await getChoices();
+		const classArray = [];
+		classChoices.forEach(i => classArray.push(i.className));
     if (focusedOption.name === "class") {
-      choices = classChoices;
+      choices = classArray;
     }
 
     const filtered = choices.filter((choice) =>
@@ -59,10 +61,12 @@ module.exports = {
       : "";
     const limit = (getLimit > 1) & (getLimit < 20) ? getLimit : 1;
     const query = `
-SELECT t.id, t.name, t.className, t.date, a.info
+SELECT t.id, t.name, c.className, t.date, a.info
 FROM task t
 LEFT JOIN addInfo a
 ON t.id=a.taskID
+INNER JOIN classes c
+ON t.classID = c.id
 WHERE t.date > date('now')
 ${typeQuery}
 ${classQuery}

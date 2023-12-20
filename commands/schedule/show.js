@@ -73,11 +73,12 @@ LEFT JOIN addInfo a
 ON t.id=a.taskID
 INNER JOIN classes c
 ON t.classID = c.id
-WHERE t.date > date('now')
+WHERE t.date > date('now')	
 ${classQuery}
 ${typeQuery}
 `;
 
+		
     const remove = new ButtonBuilder()
       .setCustomId("remove")
       .setLabel("Remove Task")

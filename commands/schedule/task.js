@@ -47,9 +47,11 @@ module.exports = {
       choices = ["Assignment", "Quiz"];
     }
 
-    const classChoices = await getChoices();
+		const classChoices = await getChoices();
+		let classArray = [];
+		classChoices.forEach( i => classArray.push(i.className));
     if (focusedOption.name === "class") {
-      choices = classChoices;
+      choices = classArray;
     }
 
     const month = [
@@ -95,6 +97,7 @@ module.exports = {
     const filtered = choices.filter((choice) =>
       choice.startsWith(focusedOption.value)
     );
+
     await interaction.respond(
       filtered.map((choice) => ({ name: choice, value: choice }))
     );
@@ -105,6 +108,14 @@ module.exports = {
     const day = interaction.options.getInteger("day");
     const month = interaction.options.getString("month");
     const year = interaction.options.getString("year");
+    const classArray = await getChoices();
+    let classID = false;
+    for (i in classArray) {
+      if ((classArray[i].className = className)) {
+        classID = classArray[i].id;
+        break;
+      }
+    }
 
     const modal = new ModalBuilder()
       .setCustomId("taskModal")
@@ -152,7 +163,6 @@ module.exports = {
         const yearTest = new Date().getFullYear() - year;
         let date;
 
-        console.log(yearTest);
         if (
           yearTest < 1 &&
           yearTest > -6 &&
@@ -202,22 +212,22 @@ module.exports = {
           date = false;
         }
 
-        if (date) {
+        if (date && classID) {
           interaction.reply(
             `\n> **__Creating ${taskName}__**\n> \n> **Date:** ${month} ${day}\n> **Type** ${type}\n> **Class:** ${className}`
           );
           db.run(
             `
-INSERT INTO task (type, name, className, date)
+INSERT INTO task (type, name, classID, date)
 VALUES (?, ?, ?, ?);
 		`,
             {
               1: type,
               2: taskName,
-              3: className,
+              3: classID,
               4: date,
             },
-            (err, row) => {
+            (err) => {
               if (err) {
                 console.log(err);
                 interaction.followUp("Something went wrong.");
@@ -245,7 +255,9 @@ SELECT LAST_INSERT_ROWID() as id FROM task;
             }
           );
         } else {
-          interaction.reply("Invalid date");
+          !date & classID && interaction.reply("Invalid date.");
+          !date & !classID && interaction.reply("Invalid date and class name.");
+          date & !classID && interaction.reply("Invalid class name");
         }
         db.close();
       });
