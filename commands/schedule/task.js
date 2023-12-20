@@ -78,7 +78,7 @@ module.exports = {
       choices = defMonth;
     }
 
-    const yearString = (inc = 0) => {
+    const getFutureYear = (inc = 0) => {
       let year = new Date().getFullYear();
       year += inc;
       return year.toString();
@@ -86,11 +86,11 @@ module.exports = {
 
     if (focusedOption.name === "year") {
       choices = [
-        yearString(),
-        yearString(1),
-        yearString(2),
-        yearString(3),
-        yearString(4),
+        getFutureYear(),
+        getFutureYear(1),
+        getFutureYear(2),
+        getFutureYear(3),
+        getFutureYear(4),
       ];
     }
 
