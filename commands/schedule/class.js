@@ -1,4 +1,8 @@
-const { SlashCommandBuilder } = require("discord.js");
+const {
+  SlashCommandBuilder,
+  roleMention,
+  PermissionsBitField,
+} = require("discord.js");
 const sqlite3 = require("sqlite3").verbose();
 
 module.exports = {
@@ -44,104 +48,110 @@ module.exports = {
 
   async execute(interaction) {
     const db = new sqlite3.Database("database/tasks.db");
+    const type = interaction.options.getSubcommand();
+    const id = interaction.options.getString("id");
+    let reply;
 
-    await interaction.reply(await reply("reply"));
-    reply("edit");
-
-    async function reply(type) {
-      if (interaction.options.getSubcommand() === "add") {
-        return add(type);
-      } else if (interaction.options.getSubcommand() === "show") {
-        return show(type);
-      } else if (interaction.options.getSubcommand() === "status") {
-        return status(type);
-      } else if (interaction.options.getSubcommand() === "remove") {
-        return remove(type);
+    if (
+      interaction.member.permissions.has(
+        PermissionsBitField.Flags.Administrator
+      )
+    ) {
+      switch (type) {
+        case "add":
+          await interaction.reply("Adding new class.");
+          add();
+          break;
+        case "show":
+          await interaction.reply("Here is your class list!");
+          show();
+          break;
+        case "status":
+          await interaction.reply(`Updating Status of ${id}`);
+          status();
+          break;
+        case "remove":
+          await interaction.reply(`Removing ${id} from the list`);
+          remove();
+          break;
       }
+    } else {
+      interaction.reply("This command requires Admin priviledges");
     }
 
-    function add(type) {
-      if (type === "reply") {
-        return "Adding new class.";
-      } else if (type === "edit") {
-        const className = interaction.options.getString("name");
+    function add() {
+      const className = interaction.options.getString("name");
 
-        db.run(
-          "INSERT INTO classes (className, active) VALUES (?, ?)",
-          {
-            1: className,
-            2: 1,
-          },
-          (err) => {
+      db.run(
+        "INSERT INTO classes (className, active) VALUES (?, ?)",
+        {
+          1: className,
+          2: 1,
+        },
+        (err) => {
+          err
+            ? console.error(err)
+            : console.log(className + " Successfully Created");
+          interaction.followUp(
             err
-              ? console.error(err)
-              : console.log(className + " Successfully Created");
-            interaction.editReply(
-              err
-                ? "Failed to create " + className
-                : className + " created successfully"
-            );
-          }
-        );
-      }
+              ? "Failed to create " + className
+              : className + " created successfully"
+          );
+        }
+      );
     }
 
-    function show(type) {
-      if (type == "reply") {
-        return "Here is your class list!";
-      } else if (type === "edit") {
-        db.each("SELECT id, className, active FROM classes", (err, row) => {
-          try {
-            const active = row.active ? "Active" : "Inactive";
-            err
-              ? interaction.editReply("failed to retrieve from DB")
-              : interaction.followUp(`
+    function show() {
+      db.each("SELECT id, className, active FROM classes", (err, row) => {
+        try {
+          const active = row.active ? "Active" : "Inactive";
+          err
+            ? interaction.followUp("failed to retrieve from DB")
+            : interaction.followUp(`
 Name: ${row.className}
 ID: ${row.id}
 Status: ${active}`);
-          } catch (e) {
-            console.log(e);
-            console.log(err);
-          }
-        });
-      }
+        } catch (e) {
+          console.log(e);
+          console.log(err);
+        }
+      });
     }
 
-    function status(type) {
-      const id = interaction.options.getString("id");
-      if (type === "reply") {
-        return `Updating Status of ${id}`;
-      } else if (type === "edit") {
-        db.run(
-          `
+    function status() {
+      db.run(
+        `
 UPDATE classes
 SET active = NOT active
-WHERE id = ?`, {1: id},
-          (err) => {
-            err
-              ? console.error(err)
-              : console.log("Status successfully changed for " + id);
-            err
-              ? interaction.editReply("Error changing status of " + id)
-              : interaction.editReply("Status successfully changed for " + id);
-          }
-        );
-      }
+WHERE id = ?`,
+        { 1: id },
+        (err) => {
+          err
+            ? console.error(err)
+            : console.log("Status successfully changed for " + id);
+          err
+            ? interaction.followUp("Error changing status of " + id)
+            : interaction.followUp("Status successfully changed for " + id);
+        }
+      );
     }
 
-    function remove(type) {
-      const id = interaction.options.getString("id");
-      if (type === "reply") {
-        return `Removing ${id} from the list`;
-      } else if (type === "edit") {
-        const id = interaction.options.getString("id");
-        db.run(`DELETE FROM classes WHERE id=?`, { 1: id }, (err) => {
-          err ? console.error(err) : console.log("Successfully removed" + id);
-          err
-            ? interaction.editReply("Error removing " + id)
-            : interaction.editReply("Status successfully removed " + id);
-        });
-      }
+    function remove() {
+      db.run(`DELETE FROM classes WHERE id=?`, { 1: id }, (err) => {
+				if (err) {
+					interaction.followUp("Error removing " + id)
+					console.error(err);
+				} else {
+					db.run("DELETE FROM task WHERE classID=?", {1: id}, (err) => {
+						if(err) {
+							interaction.followUp("Error removing " + id)
+							console.log(err)
+						} else {
+							interaction.followUp("Class and tasks successfully removed: " + id);
+						}
+					})
+				}
+      });
     }
 
     db.close();

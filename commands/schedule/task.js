@@ -104,6 +104,7 @@ module.exports = {
   },
   async execute(interaction) {
     const type = interaction.options.getString("type");
+		const typeList = ['Assignment', 'Quiz'];
     const className = interaction.options.getString("class");
     const day = interaction.options.getInteger("day");
     const month = interaction.options.getString("month");
@@ -212,7 +213,7 @@ module.exports = {
           date = false;
         }
 
-        if (date && classID) {
+        if (date && classID && typeList.includes(type)) {
           interaction.reply(
             `\n> **__Creating ${taskName}__**\n> \n> **Date:** ${month} ${day}\n> **Type** ${type}\n> **Class:** ${className}`
           );
@@ -255,9 +256,25 @@ SELECT LAST_INSERT_ROWID() as id FROM task;
             }
           );
         } else {
-          !date & classID && interaction.reply("Invalid date.");
-          !date & !classID && interaction.reply("Invalid date and class name.");
-          date & !classID && interaction.reply("Invalid class name");
+					let errString = "Invalid"
+					const endErrString = "."
+					const dateErrString = " date"
+					const classErrString = " class name"
+					const typeErrString = " type"
+
+					if (!date) {
+						errString += dateErrString;
+					}
+
+					if (!classID) {
+						!date ? errString += " and" + classErrString: errString += classErrString;
+					}
+
+					if (!typeList.includes(type)) {
+						!date | !classID ? errString += " and" + typeErrString: errString += typeErrString;
+					}
+
+					interaction.reply(errString + endErrString);
         }
         db.close();
       });
