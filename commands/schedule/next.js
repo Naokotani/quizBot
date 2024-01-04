@@ -73,7 +73,10 @@ ${classQuery}
 ORDER BY t.date ASC
 LIMIT ?
 `;
-    await interaction.reply("Here is your next task.");
+    await interaction.reply({
+			content: "Here is your next task.",
+			ephemeral: true,
+		});
 
     db.each(query, { 1: limit }, (err, row) => {
       try {
@@ -91,9 +94,12 @@ ${row.info}
 `;
         interaction.followUp({
           content: row.info ? replyHead + replyBody : replyHead,
+					ephemeral: true,
         });
       } catch (e) {
-        interaction.followUp({ content: "Something went wrong!" });
+        interaction.followUp({ content: "Something went wrong!",
+															 ephemeral: true,
+														 });
       }
     });
 

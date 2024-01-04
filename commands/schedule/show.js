@@ -77,7 +77,6 @@ WHERE t.date > date('now')
 ${classQuery}
 ${typeQuery}
 `;
-
 		
     const remove = new ButtonBuilder()
       .setCustomId("remove")
@@ -89,6 +88,7 @@ ${typeQuery}
     const response = await interaction.reply({
       content: typeRes,
       components: [buttonRow],
+			ephemeral: true,
     });
 
     let tasksList = [];
@@ -114,6 +114,7 @@ ${row.info}
           tasksList.push({ label: row.name, value: row.id.toString() });
           interaction.followUp({
             content: row.info ? replyHead + replyBody : replyHead,
+						ephemeral: true,
           });
         } catch (e) {
           console.log(e);
@@ -153,6 +154,7 @@ ${row.info}
       await interaction.editReply({
         content: "Here are your upcoming quizes",
         components: [],
+				ephemeral: true,
       });
     }
 
