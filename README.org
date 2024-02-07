@@ -1,1 +1,18 @@
-/home/naokotani/Documents/denote/20231117T081016--quizboxjs__personal.org
+* Quizbot
+Quizbot is a task management bot written with [[https://discord.js.org/][discord.js]] that is designed to be used for students or discords that are devoted to a university or college program. The bot allows users to interact with four commands, one of which is restricted to server admins. 
+
+** Class
+Class is the admin only command. It allows users to create, add, remove and change the status of classes by using interactive commands. Because the tasks tables have a foreign key relationship dependency on the class table a class can only be removed if all of the tasks for that class have been removed. To solve this problem I decided to make a column in the class table that determines whether or not the class is "active" or "inactive"  and if the class inactive, then no tasks will appear for that class when a user shows tasks. Once all tasks that use the classes primary key as their foreign key are removed, you are free to remove the class. By default, classes are set to be active when they are created. 
+** Task
+The task command is how users create the tasks themselves. Using the task gives the user a prompt with select style menus with available classes and provides fields to add the date for the task. After entering this data a modal allows for confirmation of the task and gives an opportunity  enter additional longer form information and set the time.
+** Next and Show
+The next and show commands are how users display the tasks. I decided to make these commands ephemeral to reduce spam in the server, while the task command is not ephemeral to make it less likely for people to try to enter the same task multiple times. 
+** Why SQLite?
+I decided to use SQLite for this project mainly for the sake of simplicity. For personal use it would just as easy to use, for example, a PostgreSQL, but if I wanted to make the bot available for others to use SQLite has the advantage of being much easier for users to install use as it can set itself up without any need for extra input from the user. In this case simplicity seemed more important than scalability or efficiency of the database.
+** What's Next?
+I designed this bot so that it could be made available for others to use, but as it stands it is not robust enough to be  made available for others to use.
+*** Database Maintenance
+For one thing, there is currently no good way to delete classes or tasks. Tasks need to be manually deleted and deleting classes requires users to delete all tasks associated with a class. This would be incredibly cumbersome for normal users. I would like to implement a solution that is a scheduled task that, perhaps once a day and when the app starts, will check for classes that have no associated tasks and were created more than a several months ago (perhaps four months or around the length of a normal semester). Furthermore, tasks whose due date has past by more than perhaps two weeks will automatically be deleted. This way, the database should automatically clean itself without getting in the way too much by deleting things in a way that isn't expected. It would probably be good to create a way for admins to change these values from the defaults. 
+
+*** Validation
+The other place the bot needs improvement is validation and testing. It made some effort to validate data, but more effort is required here. I am considering rewriting the bot in typescript to ensure that the data being sent to the database is in the correct type in order to prevent data inconsistency. I would also like to do more work on testing and using TypeScript would reduce the complexity of the tests I would need to write by elimination errors from inconsistencies in types.
