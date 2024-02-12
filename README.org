@@ -1,6 +1,18 @@
 * Quizbot
-Quizbot is a task management bot written with [[https://discord.js.org/][discord.js]] that is designed to be used for students or discords that are devoted to a university or college program. The bot allows users to interact with four commands, one of which is restricted to server admins. 
+Quizbot is a task management bot written with [[https://discord.js.org/][discord.js]] that is designed to be used for students or discords that are devoted to a university or college program. The bot allows users to interact with four commands, one of which is restricted to server admins.
 
+* Running and Usage
+To run this bot you need to set up a bot on the Discord developer portal. Instructions for that are [[https://discord.com/developers/docs/getting-started][here]]. You need the keys from this process to place in a =.env= file in the root directory in this format:
+
+#+begin_src bash
+CLIENT_TOKEN=secretcode
+CLIENT_ID=secretcode
+GUILD_ID=secretcode
+#+end_src
+
+"secretcode" would be replaced with the actual keys that match those names. *These are private keys and should not be exposed publicly and should not be checked into a public repository*. The data for the bot is handled by SQLite, and the database must be set-up before running the bot by running =node setup-database.js=. The bot can be started with =node index.js=, but should be  managed by [[https://pm2.keymetrics.io/][pm2]] or a similar process manager. After starting the bot you will notice that there is dummy data in the database. *Enter real data before deleting the dummy data.*
+
+* Command usage
 ** Class
 Class is the admin only command. It allows users to create, add, remove and change the status of classes by using interactive commands. Because the tasks tables have a foreign key relationship dependency on the class table a class can only be removed if all of the tasks for that class have been removed. To solve this problem I decided to make a column in the class table that determines whether or not the class is "active" or "inactive"  and if the class inactive, then no tasks will appear for that class when a user shows tasks. Once all tasks that use the classes primary key as their foreign key are removed, you are free to remove the class. By default, classes are set to be active when they are created. 
 ** Task
@@ -16,3 +28,4 @@ For one thing, there is currently no good way to delete classes or tasks. Tasks 
 
 *** Validation
 The other place the bot needs improvement is validation and testing. It made some effort to validate data, but more effort is required here. I am considering rewriting the bot in typescript to ensure that the data being sent to the database is in the correct type in order to prevent data inconsistency. I would also like to do more work on testing and using TypeScript would reduce the complexity of the tests I would need to write by elimination errors from inconsistencies in types.
+
